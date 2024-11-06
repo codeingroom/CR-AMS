@@ -1,4 +1,35 @@
 function generateRollNumbers() {
+  const section = document.getElementById("sectionSelect").value;
+  if (!section) {
+    alert("Please select a section.");
+    return;
+  }
+
+  const rollCount = document.getElementById("rollCount").value;
+  const checkboxList = document.getElementById("checkboxList");
+  checkboxList.innerHTML = ""; // Clear existing checkboxes
+
+  for (let i = 1; i <= rollCount; i++) {
+    const checkboxItem = document.createElement("div");
+    checkboxItem.classList.add("checkbox-item");
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = i;
+    checkbox.id = `roll-${i}`;
+
+    const label = document.createElement("label");
+    label.textContent = `Roll ${i} (${section})`; // Display roll number with section
+    label.setAttribute("for", `roll-${i}`);
+
+    checkboxItem.appendChild(checkbox);
+    checkboxItem.appendChild(label);
+    checkboxItem.onclick = () => checkbox.click(); // Click anywhere to select checkbox
+    checkboxList.appendChild(checkboxItem);
+  }
+}
+
+function generateRollNumbers() {
   const rollCount = document.getElementById("rollCount").value;
   const checkboxList = document.getElementById("checkboxList");
   checkboxList.innerHTML = ""; // Clear existing checkboxes
@@ -18,10 +49,51 @@ function generateRollNumbers() {
 
     checkboxItem.appendChild(checkbox);
     checkboxItem.appendChild(label);
-    checkboxItem.onclick = () => checkbox.click(); // Click anywhere to select checkbox
+
+    // Click event for the container, but skips toggling if the checkbox was directly clicked
+    checkboxItem.addEventListener("click", (event) => {
+      if (event.target !== checkbox) {
+        checkbox.checked = !checkbox.checked; // Toggle checkbox state
+      }
+    });
+
+    // Append to the checkbox list
     checkboxList.appendChild(checkboxItem);
   }
 }
+
+function generateRollNumbers() {
+  const rollCount = document.getElementById("rollCount").value;
+  const checkboxList = document.getElementById("checkboxList");
+  checkboxList.innerHTML = ""; // Clear existing checkboxes
+
+  for (let i = 1; i <= rollCount; i++) {
+    const checkboxItem = document.createElement("div");
+    checkboxItem.classList.add("checkbox-item");
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = i;
+    checkbox.id = `roll-${i}`;
+
+    const label = document.createElement("label");
+    label.textContent = `Roll ${i}`;
+    label.setAttribute("for", `roll-${i}`);
+
+    // Append the checkbox and label to the item container
+    checkboxItem.appendChild(checkbox);
+    checkboxItem.appendChild(label);
+
+    // Add click event listener to the entire checkbox item
+    checkboxItem.addEventListener("click", () => {
+      checkbox.checked = !checkbox.checked; // Toggle checkbox state
+    });
+
+    // Append the checkbox item to the list
+    checkboxList.appendChild(checkboxItem);
+  }
+}
+
 
 function toggleSelectAll(selectAllCheckbox) {
   const checkboxes = document.querySelectorAll("#checkboxList input[type='checkbox']");
