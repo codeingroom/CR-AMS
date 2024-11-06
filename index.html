@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Application</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Attendance Management System by BPS for Class Representatives</h2>
+    <input type="number" id="rollCount" placeholder="Enter total roll numbers" min="1">
+    <button onclick="generateRollNumbers()">Generate List</button>
+    <div class="select-all">
+      <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)">
+      <label for="selectAll">Select All</label>
+    </div>
+	
+    <div id="checkboxContainer">
+      <div id="checkboxList" class="checkbox-list"></div>
+      <button onclick="showAbsentList()">Submit</button>
+    </div>
+    <div id="absentListContainer" style="display: none;">
+  <h3>Absent Roll Numbers</h3>
+  <p id="absentDate"></p> <!-- New paragraph for date -->
+  <ul id="absentList"></ul>
+  <button onclick="goBack()">Back</button>
+  <button onclick="printAbsentList()">Print Absent List</button>
+</div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
