@@ -26,16 +26,16 @@
 // Define geofence center and radius (for two houses)
 const geofences = [
   {
-    name: "Ghar 1",
+    name: "the PG",
     latitude: 27.621837253789547, // Replace with your Ghar 1 latitude
     longitude: 77.57831739613029, // Replace with your Ghar 1 longitude
-    radius: 0.05, // Radius in kilometers (~50 meters)
+    radius: 0.02, // Radius in kilometers (~50 meters)
   },
   {
     name: "Ghar 2",
     latitude: 27.621837253789547, // Replace with your Ghar 2 latitude
     longitude: 77.57831739613029, // Replace with your Ghar 2 longitude
-    radius: 0.05, // Radius in kilometers (~50 meters)
+    radius: 0.02, // Radius in kilometers (~50 meters)
   },
 ];
 
@@ -64,7 +64,7 @@ function checkGeofence(lat, lon) {
       return `Inside ${geofence.name}`;
     }
   }
-  return "Outside any geofence";
+  return "Outside the PG";
 }
 
 // Function to update the status
