@@ -20,102 +20,100 @@
   <h1>Geofence Notification App</h1>
   <p>This app tracks if you are inside or outside the geofence.</p>
   <div class="status" id="status">Checking location...</div>
+
   <script>
-  // app.js
+    // Define geofence center and radius (for two houses)
+    const geofences = [
+      {
+        name: "the PG",
+        latitude: 27.621837253789547, // Replace with your Ghar 1 latitude
+        longitude: 77.57831739613029, // Replace with your Ghar 1 longitude
+        radius: 20, // Radius in meters (20 meters)
+      },
+      {
+        name: "Ghar 2",
+        latitude: 27.606432, // Replace with your Ghar 2 latitude
+        longitude: 77.594242, // Replace with your Ghar 2 longitude
+        radius: 20, // Radius in meters (20 meters)
+      },
+    ];
 
-// Define geofence center and radius (for two houses)
-const geofences = [
-  {
-    name: "the PG",
-    latitude: 27.621837253789547, // Replace with your Ghar 1 latitude
-    longitude: 77.57831739613029, // Replace with your Ghar 1 longitude
-    radius: 0.02, // Radius in kilometers (~50 meters)
-  },
-  {
-    name: "Ghar 2",
-    latitude: 27.606432, // Replace with your Ghar 2 latitude
-    longitude: 77.594242, // Replace with your Ghar 2 longitude
-    radius: 0.02, // Radius in kilometers (~50 meters)
-  },
-];
+    let currentStatus = null;
 
-let currentStatus = null;
+    // Function to calculate distance between two GPS coordinates
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3; // Earth's radius in meters (use meters for precision)
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-// Function to calculate distance between two GPS coordinates
-function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Earth's radius in km
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // Distance in km
-}
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-// Function to check if user is inside a geofence
-function checkGeofence(lat, lon) {
-  for (const geofence of geofences) {
-    const distance = getDistance(lat, lon, geofence.latitude, geofence.longitude);
-    if (distance <= geofence.radius) {
-      return `Inside ${geofence.name}`;
+      return R * c; // Distance in meters
     }
-  }
-  return "Outside the PG";
-}
 
-// Function to update the status
-function updateStatus(message) {
-  const statusElement = document.getElementById("status");
-  if (message !== currentStatus) {
-    currentStatus = message;
-    statusElement.textContent = message;
-    notifyUser(message);
-  }
-}
+    // Function to check if user is inside a geofence
+    function checkGeofence(lat, lon) {
+      for (const geofence of geofences) {
+        const distance = getDistance(lat, lon, geofence.latitude, geofence.longitude);
+        if (distance <= geofence.radius) {
+          return `Inside ${geofence.name}`;
+        }
+      }
+      return "Outside the PG";
+    }
 
-// Function to notify the user
-function notifyUser(message) {
-  if (Notification.permission === "granted") {
-    new Notification(message);
-  }
-}
+    // Function to update the status
+    function updateStatus(message) {
+      const statusElement = document.getElementById("status");
+      if (message !== currentStatus) {
+        currentStatus = message;
+        statusElement.textContent = message;
+        notifyUser(message);
+      }
+    }
 
-// Request location and check geofence periodically
-function trackLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const status = checkGeofence(latitude, longitude);
-        updateStatus(status);
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-      },
-      { enableHighAccuracy: true }
-    );
-  } else {
-    alert("Geolocation is not supported by your browser!");
-  }
-}
+    // Function to notify the user
+    function notifyUser(message) {
+      if (Notification.permission === "granted") {
+        new Notification(message);
+      }
+    }
 
-// Ask for notification permissions and start tracking
-if (Notification.permission !== "granted") {
-  Notification.requestPermission().then((permission) => {
-    if (permission === "granted") {
-      trackLocation();
+    // Request location and check geofence periodically
+    function trackLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            const status = checkGeofence(latitude, longitude);
+            updateStatus(status);
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+            alert("Unable to retrieve location. Please ensure location services are enabled.");
+          },
+          { enableHighAccuracy: true }
+        );
+      } else {
+        alert("Geolocation is not supported by your browser!");
+      }
+    }
+
+    // Ask for notification permissions and start tracking
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          trackLocation();
+        } else {
+          alert("Notifications are required for this app to work.");
+        }
+      });
     } else {
-      alert("Notifications are required for this app to work.");
+      trackLocation();
     }
-  });
-} else {
-  trackLocation();
-}
-
   </script>
 </body>
 </html>
