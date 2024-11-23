@@ -1,97 +1,94 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Geofence Notification (Rectangular Area)</title>
+  <title>Home Geofence</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
+      text-align: center;
+      margin-top: 50px;
     }
-    .status {
-      font-size: 1.5em;
-      margin-top: 20px;
-      color: green;
+    #status {
+      font-size: 24px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Geofence Notification App</h1>
-  <p>This app tracks if you are inside or outside the geofence for Ghar 1.</p>
-  <div class="status" id="status">Checking location...</div>
+  <h1>Location Status</h1>
+  <div id="status">Checking your location...</div>
+
   <script>
-    // Define rectangular geofence for Ghar 1 (bounding box)
-    const ghar1Geofence = {
-      name: "Ghar 1",
-      minLatitude: 27.62174,  // Southern boundary
-      maxLatitude: 27.62193,  // Northern boundary
-      minLongitude: 77.57821, // Western boundary
-      maxLongitude: 77.57843, // Eastern boundary
-    };
+    // Home coordinates (latitude, longitude)
+    let homeLatitude = 27.621592;
+    let homeLongitude = 77.578318;
+    
+    // Area of the home in meters (square area = 97.06 m², side length ≈ 9.85 meters)
+    let boundaryLength = 9.85;  // side of the square in meters
 
-    let currentStatus = null;
+    // Approximate conversion from meters to degrees
+    let latConversion = 0.000009; // ~1 meter = 0.000009 degrees
+    let lonConversion = 0.000008; // ~1 meter = 0.000008 degrees
 
-    // Function to check if the user is inside the rectangular geofence
-    function isInsideRectangle(lat, lon, geofence) {
-      return (
-        lat >= geofence.minLatitude &&
-        lat <= geofence.maxLatitude &&
-        lon >= geofence.minLongitude &&
-        lon <= geofence.maxLongitude
+    // Define boundaries of square (north, south, east, west)
+    let north = homeLatitude + (boundaryLength * latConversion);
+    let south = homeLatitude - (boundaryLength * latConversion);
+    let east = homeLongitude + (boundaryLength * lonConversion);
+    let west = homeLongitude - (boundaryLength * lonConversion);
+
+    console.log("Geofence Boundaries:");
+    console.log("North: ", north);
+    console.log("South: ", south);
+    console.log("East: ", east);
+    console.log("West: ", west);
+
+    // Check if user's current location is within the defined geofence
+    function checkLocation(userLatitude, userLongitude) {
+      // Check if the user's location is within the square boundary
+      let withinGeofence = (
+        userLatitude >= south && userLatitude <= north &&
+        userLongitude >= west && userLongitude <= east
       );
-    }
 
-    // Function to update the status on the webpage
-    function updateStatus(message) {
-      const statusElement = document.getElementById("status");
-      if (message !== currentStatus) {
-        currentStatus = message;
-        statusElement.textContent = message;
-        notifyUser(message);
+      if (withinGeofence) {
+        document.getElementById("status").innerText = "You are at home!";
+        notifyUser("You have entered the home area.");
+      } else {
+        document.getElementById("status").innerText = "You are outside home!";
+        notifyUser("You have left the home area.");
       }
     }
 
-    // Function to notify the user
+    // Function to simulate push notification
     function notifyUser(message) {
+      // Simulate browser notification
       if (Notification.permission === "granted") {
         new Notification(message);
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(function(permission) {
+          if (permission === "granted") {
+            new Notification(message);
+          }
+        });
       }
     }
 
-    // Request location and check geofence periodically
-    function trackLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            const insideGhar1 = isInsideRectangle(latitude, longitude, ghar1Geofence);
-            const status = insideGhar1 ? `Inside ${ghar1Geofence.name}` : `Outside ${ghar1Geofence.name}`;
-            updateStatus(status);
-          },
-          (error) => {
-            console.error("Error getting location:", error);
-            document.getElementById("status").textContent = "Unable to retrieve location.";
-          },
-          { enableHighAccuracy: true }
-        );
-      } else {
-        alert("Geolocation is not supported by your browser!");
-      }
-    }
+    // Check user's location every 5 seconds
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(function(position) {
+        let userLatitude = position.coords.latitude;
+        let userLongitude = position.coords.longitude;
+        console.log("User Location: ", userLatitude, userLongitude);
 
-    // Ask for notification permissions and start tracking
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          trackLocation();
-        } else {
-          alert("Notifications are required for this app to work.");
-        }
+        // Check if user is inside the geofence
+        checkLocation(userLatitude, userLongitude);
+      }, function(error) {
+        alert("Unable to retrieve your location.");
       });
     } else {
-      trackLocation();
+      alert("Geolocation is not supported by this browser.");
     }
   </script>
 </body>
