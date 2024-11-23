@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geofence Notification</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .status {
+      font-size: 1.5em;
+      margin-top: 20px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>Geofence Notification App</h1>
+  <p>This app tracks if you are inside or outside the geofence.</p>
+  <div class="status" id="status">Checking location...</div>
+  <script>
+  // app.js
+
+// Define geofence center and radius (for two houses)
+const geofences = [
+  {
+    name: "Ghar 1",
+    latitude: 27.621837253789547, // Replace with your Ghar 1 latitude
+    longitude: 77.57831739613029, // Replace with your Ghar 1 longitude
+    radius: 0.05, // Radius in kilometers (~50 meters)
+  },
+  {
+    name: "Ghar 2",
+    latitude: 28.7045, // Replace with your Ghar 2 latitude
+    longitude: 77.1050, // Replace with your Ghar 2 longitude
+    radius: 0.05, // Radius in kilometers (~50 meters)
+  },
+];
+
+let currentStatus = null;
+
+// Function to calculate distance between two GPS coordinates
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in km
+}
+
+// Function to check if user is inside a geofence
+function checkGeofence(lat, lon) {
+  for (const geofence of geofences) {
+    const distance = getDistance(lat, lon, geofence.latitude, geofence.longitude);
+    if (distance <= geofence.radius) {
+      return `Inside ${geofence.name}`;
+    }
+  }
+  return "Outside any geofence";
+}
+
+// Function to update the status
+function updateStatus(message) {
+  const statusElement = document.getElementById("status");
+  if (message !== currentStatus) {
+    currentStatus = message;
+    statusElement.textContent = message;
+    notifyUser(message);
+  }
+}
+
+// Function to notify the user
+function notifyUser(message) {
+  if (Notification.permission === "granted") {
+    new Notification(message);
+  }
+}
+
+// Request location and check geofence periodically
+function trackLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const status = checkGeofence(latitude, longitude);
+        updateStatus(status);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+      },
+      { enableHighAccuracy: true }
+    );
+  } else {
+    alert("Geolocation is not supported by your browser!");
+  }
+}
+
+// Ask for notification permissions and start tracking
+if (Notification.permission !== "granted") {
+  Notification.requestPermission().then((permission) => {
+    if (permission === "granted") {
+      trackLocation();
+    } else {
+      alert("Notifications are required for this app to work.");
+    }
+  });
+} else {
+  trackLocation();
+}
+
+  </script>
+</body>
+</html>
