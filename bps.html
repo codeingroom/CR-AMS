@@ -1,1 +1,98 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Geofence Notification (Rectangular Area)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .status {
+      font-size: 1.5em;
+      margin-top: 20px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>Geofence Notification App</h1>
+  <p>This app tracks if you are inside or outside the geofence for Ghar 1.</p>
+  <div class="status" id="status">Checking location...</div>
+  <script>
+    // Define rectangular geofence for Ghar 1 (bounding box)
+    const ghar1Geofence = {
+      name: "Ghar 1",
+      minLatitude: 27.62174,  // Southern boundary
+      maxLatitude: 27.62193,  // Northern boundary
+      minLongitude: 77.57821, // Western boundary
+      maxLongitude: 77.57843, // Eastern boundary
+    };
+
+    let currentStatus = null;
+
+    // Function to check if the user is inside the rectangular geofence
+    function isInsideRectangle(lat, lon, geofence) {
+      return (
+        lat >= geofence.minLatitude &&
+        lat <= geofence.maxLatitude &&
+        lon >= geofence.minLongitude &&
+        lon <= geofence.maxLongitude
+      );
+    }
+
+    // Function to update the status on the webpage
+    function updateStatus(message) {
+      const statusElement = document.getElementById("status");
+      if (message !== currentStatus) {
+        currentStatus = message;
+        statusElement.textContent = message;
+        notifyUser(message);
+      }
+    }
+
+    // Function to notify the user
+    function notifyUser(message) {
+      if (Notification.permission === "granted") {
+        new Notification(message);
+      }
+    }
+
+    // Request location and check geofence periodically
+    function trackLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            const insideGhar1 = isInsideRectangle(latitude, longitude, ghar1Geofence);
+            const status = insideGhar1 ? `Inside ${ghar1Geofence.name}` : `Outside ${ghar1Geofence.name}`;
+            updateStatus(status);
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+            document.getElementById("status").textContent = "Unable to retrieve location.";
+          },
+          { enableHighAccuracy: true }
+        );
+      } else {
+        alert("Geolocation is not supported by your browser!");
+      }
+    }
+
+    // Ask for notification permissions and start tracking
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          trackLocation();
+        } else {
+          alert("Notifications are required for this app to work.");
+        }
+      });
+    } else {
+      trackLocation();
+    }
+  </script>
+</body>
+</html>
