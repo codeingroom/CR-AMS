@@ -14,12 +14,18 @@
       margin-top: 20px;
       color: green;
     }
+    .location {
+      font-size: 1.2em;
+      margin-top: 10px;
+      color: blue;
+    }
   </style>
 </head>
 <body>
   <h1>Geofence Notification App</h1>
   <p>This app tracks if you are inside or outside the geofence.</p>
   <div class="status" id="status">Checking location...</div>
+  <div class="location" id="location">Your current location: Lat: --, Lon: --</div>
 
   <script>
     // Define geofence center and radius (for two houses)
@@ -28,13 +34,13 @@
         name: "the PG",
         latitude: 27.621837253789547, // Replace with your Ghar 1 latitude
         longitude: 77.57831739613029, // Replace with your Ghar 1 longitude
-        radius: 20, // Radius in meters (15 meters)
+        radius: 15, // Radius in meters (15 meters)
       },
       {
         name: "Ghar 2",
         latitude: 27.606432, // Replace with your Ghar 2 latitude
         longitude: 77.594242, // Replace with your Ghar 2 longitude
-        radius: 20, // Radius in meters (15 meters)
+        radius: 15, // Radius in meters (15 meters)
       },
     ];
 
@@ -82,6 +88,12 @@
       }
     }
 
+    // Function to update the live location display
+    function updateLocationDisplay(lat, lon) {
+      const locationElement = document.getElementById("location");
+      locationElement.textContent = `Your current location: Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)}`;
+    }
+
     // Request location and check geofence periodically
     function trackLocation() {
       if (navigator.geolocation) {
@@ -90,6 +102,7 @@
             const { latitude, longitude } = position.coords;
             const status = checkGeofence(latitude, longitude);
             updateStatus(status);
+            updateLocationDisplay(latitude, longitude);
           },
           (error) => {
             console.error("Error getting location:", error);
